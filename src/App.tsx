@@ -63,7 +63,7 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system">
+    <ThemeProvider attribute="class">
       <AuthProvider>
         <UserProvider>
           <Router>

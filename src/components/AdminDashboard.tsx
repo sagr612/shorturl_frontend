@@ -10,9 +10,11 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { AdminStats, AdminUrlsResponse, AdminUser } from "../types/admin";
 import { adminService } from "../services/adminService";
+import { URL } from "../services/api";
+import { toast } from "sonner";
 import { Spinner } from "./ui/spinner";
 import { Card, CardContent } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -90,19 +92,29 @@ export default function AdminDashboard() {
     fetchUrls();
   }, [page, search, visibility, sortBy, direction]);
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = useCallback(async () => {
     if (!selectedIds.length) return;
+    const originalData = urlData;
     try {
       setDeleting(true);
-      await adminService.deleteUrls(selectedIds);
+      setUrlData(
+        urlData
+          ? {
+              ...urlData,
+              data: urlData.data.filter((u) => !selectedIds.includes(u.id)),
+            }
+          : null
+      );
       setSelectedIds([]);
-      fetchUrls();
+      await adminService.deleteUrls(selectedIds);
+      toast.success("URLs deleted!");
     } catch (e) {
-      console.error(e);
+      setUrlData(originalData);
+      toast.error("Failed to delete URLs");
     } finally {
       setDeleting(false);
     }
-  };
+  }, [selectedIds, urlData]);
 
   const toggleSelect = (id: string) =>
     setSelectedIds((prev) =>
@@ -349,7 +361,7 @@ export default function AdminDashboard() {
                       <UrlItem
                         id={url.id}
                         shortKey={url.shortKey}
-                        shortUrl={`http://localhost:8080/s/${
+                        shortUrl={`${URL}/s/${
                           url.isPrivate
                             ? url.shortKey
                             : `public/${url.shortKey}`
@@ -361,11 +373,25 @@ export default function AdminDashboard() {
                         createdBy={url.createdBy?.name || "Unknown"}
                         status={url.status}
                         onDelete={async () => {
-                          await adminService.deleteUrls([url.id]);
-
-                          fetchUrls();
+                          const originalData = urlData;
+                          setUrlData(
+                            urlData
+                              ? {
+                                  ...urlData,
+                                  data: urlData.data.filter(
+                                    (u) => u.id !== url.id
+                                  ),
+                                }
+                              : null
+                          );
+                          try {
+                            await adminService.deleteUrls([url.id]);
+                            toast.success("URL deleted!");
+                          } catch {
+                            setUrlData(originalData);
+                            toast.error("Failed to delete URL");
+                          }
                         }}
-                        // onEdit={() => {}}
                       />
                     </div>
                   </div>
