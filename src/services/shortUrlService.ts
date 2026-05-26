@@ -2,16 +2,42 @@ import type { MyUrlsParams, ShortUrl, ShortUrlResponse } from "../types/url";
 import { privateApi } from "./api";
 
 export const shortUrlService = {
+  // async getPublicUrls(params?: {
+  //   page?: number;
+  //   search?: string;
+  //   sortBy?: string;
+  //   direction?: string;
+  // }): Promise<ShortUrlResponse> {
+  //   const response = await privateApi.get<ShortUrlResponse>(
+  //     "/api/v1/shorten/",
+  //     {
+  //       params,
+  //     },
+  //   );
+
+  //   return response.data;
+  // },
+
   async getPublicUrls(params?: {
     page?: number;
     search?: string;
     sortBy?: string;
     direction?: string;
   }): Promise<ShortUrlResponse> {
+    const queryParams = {
+      page: params?.page ?? 1,
+
+      ...(params?.search ? { search: params.search } : {}),
+
+      ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
+
+      ...(params?.direction ? { direction: params.direction } : {}),
+    };
+
     const response = await privateApi.get<ShortUrlResponse>(
       "/api/v1/shorten/",
       {
-        params,
+        params: queryParams,
       },
     );
 

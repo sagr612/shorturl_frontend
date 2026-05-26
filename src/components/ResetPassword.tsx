@@ -56,7 +56,7 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      await authService.resetPassword(token, password, confirmPassword);
+      await authService.resetPassword(token, password);
       toast.success("Password reset successfully!");
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {

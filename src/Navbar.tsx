@@ -26,7 +26,7 @@ import { useEffect, useState } from "react";
 export default function Navbar() {
   const location = useLocation();
   const { profile } = useUser();
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 

@@ -43,7 +43,6 @@ export const authService = {
   resetPassword: async (
     token: string,
     password: string,
-    confirmPassword: string,
   ) => {
     try {
       const res = await publicApi.post("/api/v1/auth/reset-password", {

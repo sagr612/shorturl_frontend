@@ -1,5 +1,4 @@
 import {
-  User,
   Mail,
   Calendar,
   ShieldAlert,
