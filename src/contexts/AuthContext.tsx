@@ -8,6 +8,7 @@ import {
 import type { JwtPayload } from "../types/url";
 import { jwtDecode } from "jwt-decode";
 import { authService } from "../services/authService";
+import { publicApi } from "../services/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -40,12 +41,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const logout = async () => {
+    try {
+      await publicApi.post("/api/v1/auth/logout");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      localStorage.clear();
+      setEmail(null);
+      setUserId(null);
+      setIsAdmin(false);
+    }
+  };
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
 
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
+        if (decoded.exp * 1000 <= Date.now()) {
+          logout();
+          setIsInitialized(true);
+          return;
+        }
         setUserId(decoded.userId);
         setEmail(decoded.sub);
         setIsAdmin(decoded.role === "ROLE_ADMIN");
@@ -61,7 +79,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const res = await authService.login(email, password);
 
     localStorage.setItem("accessToken", res.accessToken);
-    localStorage.setItem("refreshToken", res.token);
 
     const decoded = jwtDecode<JwtPayload>(res.accessToken);
 
@@ -74,20 +91,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const res = await authService.signup(email, password, name);
 
     localStorage.setItem("accessToken", res.accessToken);
-    localStorage.setItem("refreshToken", res.token);
 
     const decoded = jwtDecode<JwtPayload>(res.accessToken);
 
     setEmail(decoded.sub);
     setUserId(decoded.userId);
     setIsAdmin(decoded.role === "ROLE_ADMIN");
-  };
-
-  const logout = () => {
-    localStorage.clear();
-    setEmail(null);
-    setUserId(null);
-    setIsAdmin(false);
   };
 
   return (

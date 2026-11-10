@@ -67,7 +67,7 @@ export default function EditUrlModal({
         onSuccess?.();
         handleClose();
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message = getErrorMessage(err);
       toast.error(message);
 

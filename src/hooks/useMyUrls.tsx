@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 
-export function useUrls<T>({
-  fetcher,
-  params,
-}: {
-  fetcher: (params?: any) => Promise<T>;
-
-  params?: any;
-}) {
+export function useUrls<T>({ fetcher, params, }: { fetcher: (params?: any) => Promise<T>; params?: any; }) {
   const [data, setData] = useState<T | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -17,11 +10,8 @@ export function useUrls<T>({
   const fetchData = async () => {
     try {
       setLoading(true);
-
       setError(null);
-
       const res = await fetcher(params);
-
       setData(res);
     } catch (err: any) {
       setError(err.message || "Failed to load data");
@@ -30,9 +20,11 @@ export function useUrls<T>({
     }
   };
 
+  const paramKey = JSON.stringify(params);
+
   useEffect(() => {
     fetchData();
-  }, [JSON.stringify(params)]);
+  }, [paramKey]);
 
   return {
     data,

@@ -54,12 +54,12 @@ export default function Signup() {
     if (!confirmPassword) {
       newErrors.confirmPassword = getValidationErrorMessage(
         "password",
-        "required"
+        "required",
       );
     } else if (password !== confirmPassword) {
       newErrors.confirmPassword = getValidationErrorMessage(
         "password",
-        "mismatch"
+        "mismatch",
       );
     }
 
@@ -79,7 +79,7 @@ export default function Signup() {
       await signup(email, password, name);
       toast.success("Account created successfully!");
       navigate("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message = getErrorMessage(err);
       toast.error(message);
     } finally {

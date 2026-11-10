@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { UserProfile, UserStats } from "../types/url";
 import { userService } from "../services/userService";
 
@@ -8,7 +8,7 @@ export const useUserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -18,18 +18,20 @@ export const useUserProfile = () => {
       ]);
       setProfile(profileData);
       setStats(statsData);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Failed to load profile data"
+        err instanceof Error ? err.message : "Failed to load profile data",
       );
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    // This effect intentionally starts the initial asynchronous data fetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchData();
+  }, [fetchData]);
 
   return { profile, stats, loading, error, refetch: fetchData };
 };

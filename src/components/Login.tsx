@@ -36,7 +36,7 @@ export default function Login() {
       await login(email, password);
       toast.success("Welcome back!");
       navigate("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message = getErrorMessage(err);
       toast.error(message);
     } finally {

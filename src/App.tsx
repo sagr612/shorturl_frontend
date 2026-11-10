@@ -65,12 +65,12 @@ function App() {
   return (
     <ThemeProvider attribute="class">
       <AuthProvider>
-        <UserProvider>
-          <Router>
+        <Router>
+          <UserProvider>
             <AppContent />
             <Toaster />
-          </Router>
-        </UserProvider>
+          </UserProvider>
+        </Router>
       </AuthProvider>
     </ThemeProvider>
   );

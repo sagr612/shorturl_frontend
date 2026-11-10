@@ -7,13 +7,15 @@ import { Button } from "./components/ui/button";
 import { shortUrlService } from "./services/shortUrlService";
 import CreateShortUrlForm from "./components/CreateShortUrlForm";
 import { useUrls } from "./hooks/useMyUrls";
-import type { ShortUrlResponse, ShortUrl } from "./types/url";
+import type { ShortUrlResponse } from "./types/url";
 import { URL } from "./services/api";
 import { toast } from "sonner";
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [localUrls, setLocalUrls] = useState<ShortUrl[]>([]);
+  const [optimisticRemovals, setOptimisticRemovals] = useState<Set<string>>(
+    new Set(),
+  );
   const {
     data,
     loading: urlsLoading,
@@ -27,29 +29,35 @@ export default function Home() {
   });
 
   const pagination = data as ShortUrlResponse | null;
-  const urls = localUrls.length > 0 ? localUrls : (pagination?.data || []);
+
+  const urls = (pagination?.data || []).filter(
+    (url) => !optimisticRemovals.has(url.id),
+  );
   const totalClicks = urls.reduce((acc, u) => acc + u.clickCount, 0);
 
   const handleDelete = useCallback(
     async (id: string) => {
-      const originalUrls = urls;
-      const updatedUrls = urls.filter((u) => u.id !== id);
-      setLocalUrls(updatedUrls);
-
+      setOptimisticRemovals((prev) => new Set([...prev, id]));
       try {
         await shortUrlService.deleteUrls([id]);
         toast.success("URL deleted!");
+        await refetch();
+        setOptimisticRemovals(new Set());
       } catch (err) {
-        setLocalUrls(originalUrls);
+        setOptimisticRemovals((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
         toast.error("Failed to delete URL. Please try again.");
+        console.error("Error while deleting url :", err);
       }
     },
-    [urls]
+    [refetch],
   );
 
-  const handleSuccess = useCallback(() => {
-    setLocalUrls([]);
-    refetch();
+  const handleSuccess = useCallback(async () => {
+    await refetch();
   }, [refetch]);
 
   return (

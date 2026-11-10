@@ -69,27 +69,39 @@ export default function AdminDashboard() {
     })();
   }, []);
 
-  // ── fetch URLs on filter change
-  const fetchUrls = async () => {
-    try {
-      setLoading(true);
-      const res = await adminService.getAllUrls({
-        page,
-        search,
-        sortBy,
-        direction,
-        isPrivate: visibility === "all" ? undefined : visibility === "private",
-      });
-      setUrlData(res);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUrls();
+    let cancelled = false;
+    const loadUrls = async () => {
+      try {
+        setLoading(true);
+        const res = await adminService.getAllUrls({
+          page,
+          search,
+          sortBy,
+          direction,
+          isPrivate:
+            visibility === "all" ? undefined : visibility === "private",
+        });
+
+        if (cancelled) {
+          return;
+        }
+        setUrlData(res);
+      } catch (e) {
+        if (!cancelled) {
+          console.error("Failed to load admin urls", e);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadUrls();
+    return () => {
+      cancelled = true;
+    };
   }, [page, search, visibility, sortBy, direction]);
 
   const handleBulkDelete = useCallback(async () => {
@@ -103,12 +115,12 @@ export default function AdminDashboard() {
               ...urlData,
               data: urlData.data.filter((u) => !selectedIds.includes(u.id)),
             }
-          : null
+          : null,
       );
       setSelectedIds([]);
       await adminService.deleteUrls(selectedIds);
       toast.success("URLs deleted!");
-    } catch (e) {
+    } catch {
       setUrlData(originalData);
       toast.error("Failed to delete URLs");
     } finally {
@@ -248,9 +260,16 @@ export default function AdminDashboard() {
 
                 <Select
                   value={visibility}
-                  onValueChange={(v: any) => {
+                  onValueChange={(value) => {
+                    if (
+                      value !== "all" &&
+                      value !== "public" &&
+                      value !== "private"
+                    ) {
+                      return;
+                    }
                     setPage(1);
-                    setVisibility(v);
+                    setVisibility(value);
                   }}
                 >
                   <SelectTrigger className="h-9 text-sm bg-muted/40 border-muted-foreground/20">
@@ -263,7 +282,15 @@ export default function AdminDashboard() {
                   </SelectContent>
                 </Select>
 
-                <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+                <Select
+                  value={sortBy}
+                  onValueChange={(value) => {
+                    if (value !== "createdAt" && value !== "clickCount") {
+                      return;
+                    }
+                    setSortBy(value);
+                  }}
+                >
                   <SelectTrigger className="h-9 text-sm bg-muted/40 border-muted-foreground/20">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
@@ -275,7 +302,12 @@ export default function AdminDashboard() {
 
                 <Select
                   value={direction}
-                  onValueChange={(v: any) => setDirection(v)}
+                  onValueChange={(value) => {
+                    if (value !== "desc" && value !== "asc") {
+                      return;
+                    }
+                    setDirection(value);
+                  }}
                 >
                   <SelectTrigger className="h-9 text-sm bg-muted/40 border-muted-foreground/20">
                     <SelectValue placeholder="Order" />
@@ -379,10 +411,10 @@ export default function AdminDashboard() {
                               ? {
                                   ...urlData,
                                   data: urlData.data.filter(
-                                    (u) => u.id !== url.id
+                                    (u) => u.id !== url.id,
                                   ),
                                 }
-                              : null
+                              : null,
                           );
                           try {
                             await adminService.deleteUrls([url.id]);
@@ -520,7 +552,7 @@ export default function AdminDashboard() {
                         <Badge
                           variant="outline"
                           className={`text-[10px] font-semibold ${
-                            user.role === "ADMIN"
+                            user.role === "ROLE_ADMIN"
                               ? "border-destructive/30 text-destructive bg-destructive/5"
                               : "border-primary/20 text-primary bg-primary/5"
                           }`}

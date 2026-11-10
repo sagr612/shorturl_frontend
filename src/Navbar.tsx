@@ -21,18 +21,17 @@ import { cn } from "./lib/utils";
 import { getInitials } from "./lib/user";
 import { useUser } from "./contexts/UserContext";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const location = useLocation();
   const { profile } = useUser();
   const { isAuthenticated, logout } = useAuth();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // const mounted = useSyncExternalStore(
+  //   () => () => {},
+  //   () => true,
+  //   () => false,
+  // );
 
   const navLinks = [
     { to: "/", label: "Home" },
@@ -75,8 +74,17 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-2 shrink-0">
           {!isAuthenticated ? (
             <>
-              <Button variant="ghost" size="icon" title="Toggle theme" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-                {mounted && (theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />)}
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Toggle theme"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
               </Button>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/login">Login</Link>
@@ -87,8 +95,17 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Button variant="ghost" size="icon" title="Toggle theme" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-                {mounted && (theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />)}
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Toggle theme"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -159,10 +176,16 @@ export default function Navbar() {
                         variant="ghost"
                         size="sm"
                         className="justify-start"
-                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        onClick={() =>
+                          setTheme(theme === "dark" ? "light" : "dark")
+                        }
                       >
-                        {mounted && (theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />)}
-                        {mounted ? (theme === "dark" ? "Light mode" : "Dark mode") : "Toggle theme"}
+                        {theme === "dark" ? (
+                          <Sun className="h-4 w-4 mr-2" />
+                        ) : (
+                          <Moon className="h-4 w-4 mr-2" />
+                        )}
+                        {theme === "dark" ? "Light mode" : "Dark mode"}
                       </Button>
                       <Button variant="outline" asChild>
                         <Link to="/login">Login</Link>
@@ -177,10 +200,16 @@ export default function Navbar() {
                         variant="ghost"
                         size="sm"
                         className="justify-start"
-                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        onClick={() =>
+                          setTheme(theme === "dark" ? "light" : "dark")
+                        }
                       >
-                        {mounted && (theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />)}
-                        {mounted ? (theme === "dark" ? "Light mode" : "Dark mode") : "Toggle theme"}
+                        {theme === "dark" ? (
+                          <Sun className="h-4 w-4 mr-2" />
+                        ) : (
+                          <Moon className="h-4 w-4 mr-2" />
+                        )}
+                        {theme === "dark" ? "Light mode" : "Dark mode"}
                       </Button>
                       <Button variant="ghost" className="justify-start" asChild>
                         <Link to="/profile">Profile</Link>

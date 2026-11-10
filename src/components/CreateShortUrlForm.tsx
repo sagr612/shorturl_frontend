@@ -74,7 +74,7 @@ export default function CreateShortUrlForm({
       setExpirationInDays("1");
 
       onSuccess?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message = getErrorMessage(err);
       toast.error(message);
     } finally {

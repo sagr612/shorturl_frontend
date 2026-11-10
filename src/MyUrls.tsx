@@ -58,8 +58,40 @@ const MyUrlsPage = () => {
   }, [page, search, visibility, sortBy, direction]);
 
   useEffect(() => {
-    fetchUrls();
-  }, [fetchUrls]);
+    let cancelled = false;
+    const loadUrls = async () => {
+      try {
+        setLoading(true);
+        const res = await shortUrlService.getMyUrls({
+          page,
+          search,
+          sortBy,
+          direction,
+          isPrivate:
+            visibility === "all" ? undefined : visibility === "private",
+        });
+
+        if (cancelled) {
+          return;
+        }
+        setUrls(res.data);
+        setPagination(res);
+      } catch (e) {
+        if (!cancelled) {
+          console.error("Failed to load my urls", e);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadUrls();
+    return () => {
+      cancelled = true;
+    };
+  }, [page, search, visibility, sortBy, direction]);
 
   const clearSearch = () => {
     setSearch("");
@@ -75,12 +107,12 @@ const MyUrlsPage = () => {
       try {
         await shortUrlService.deleteUrls([urlId]);
         toast.success("URL deleted!");
-      } catch (error) {
+      } catch {
         setUrls(originalUrls);
         toast.error("Failed to delete URL. Please try again.");
       }
     },
-    [urls]
+    [urls],
   );
 
   const hasActiveFilters =
@@ -149,9 +181,16 @@ const MyUrlsPage = () => {
             {/* Visibility */}
             <Select
               value={visibility}
-              onValueChange={(v: any) => {
+              onValueChange={(value) => {
+                if (
+                  value !== "all" &&
+                  value !== "public" &&
+                  value !== "private"
+                ) {
+                  return;
+                }
                 setPage(1);
-                setVisibility(v);
+                setVisibility(value);
               }}
             >
               <SelectTrigger className="h-9 text-sm bg-muted/40 border-muted-foreground/20 focus:ring-primary/20">
@@ -172,7 +211,15 @@ const MyUrlsPage = () => {
             </Select>
 
             {/* Sort by */}
-            <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+            <Select
+              value={sortBy}
+              onValueChange={(value) => {
+                if (value !== "createdAt" && value !== "clickCount") {
+                  return;
+                }
+                setSortBy(value);
+              }}
+            >
               <SelectTrigger className="h-9 text-sm bg-muted/40 border-muted-foreground/20 focus:ring-primary/20">
                 <div className="flex items-center gap-2">
                   <ArrowUpDown className="w-3 h-3 text-muted-foreground/60" />
@@ -188,7 +235,12 @@ const MyUrlsPage = () => {
             {/* Direction */}
             <Select
               value={direction}
-              onValueChange={(v: any) => setDirection(v)}
+              onValueChange={(value) => {
+                if (value !== "desc" && value !== "asc") {
+                  return;
+                }
+                setDirection(value);
+              }}
             >
               <SelectTrigger className="h-9 text-sm bg-muted/40 border-muted-foreground/20 focus:ring-primary/20">
                 <SelectValue placeholder="Order" />

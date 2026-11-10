@@ -1,7 +1,23 @@
-import type { ApiErrorResponse } from "../types/url";
+export function getErrorMessage(error: unknown): string {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (
+      error as {
+        response?: {
+          data?: {
+            message?: string;
+          };
+        };
+      }
+    ).response;
 
-export function getErrorMessage(error: any): string {
-  const apiError = error?.response?.data as ApiErrorResponse;
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
 
-  return apiError?.message || error?.message || "Something went wrong";
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Something went wrong";
 }
